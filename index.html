@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pixel Playhouse</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <h1 class="main-title">Pixel Playhouse</h1>
+        <div class="game-grid">
+            <div class="game-card">
+                <img src="images/matchthecard.png" alt="Match the Card Icon" loading="lazy">
+                <h3>Match the Card</h3>
+                <button class="start-button" onclick="showGame('match-card')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/tic-tac-toe-icon.png" alt="Tic Tac Toe Icon" loading="lazy">
+                <h3>Tic Tac Toe</h3>
+                <button class="start-button" onclick="showGame('tic-tac-toe')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/missingwords.png" alt="Missing Words Icon" loading="lazy">
+                <h3>Missing Words</h3>
+                <button class="start-button" onclick="showGame('missing-words')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/puzzleslider.png" alt="Puzzle Slider Icon" loading="lazy">
+                <h3>Puzzle Slider</h3>
+                <button class="start-button" onclick="showGame('puzzle-slider')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/wordsearch.png" alt="Word Search Icon" loading="lazy">
+                <h3>Word Search</h3>
+                <button class="start-button" onclick="showGame('word-search')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/snake.png" alt="Snake Icon" loading="lazy">
+                <h3>Snake</h3>
+                <button class="start-button" onclick="showGame('snake')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/" alt="Trivia Quiz Icon" loading="lazy">
+                <h3>Trivia Quiz</h3>
+                <button class="start-button" onclick="showGame('trivia-quiz')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/colormatch.png" alt="Color Match Icon" loading="lazy">
+                <h3>Color Match</h3>
+                <button class="start-button" onclick="showGame('color-match')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/" alt="Brick Breaker Icon" loading="lazy">
+                <h3>Brick Breaker</h3>
+                <button class="start-button" onclick="showGame('brick-breaker')">Start</button>
+            </div>
+            <div class="game-card">
+                <img src="images/maze-runner-icon.png" alt="Maze Runner Icon" loading="lazy">
+                <h3>Maze Runner</h3>
+                <button class="start-button" onclick="showGame('maze-runner')">Start</button>
+            </div>
+        </div>
+        <div class="overlay" id="overlay"></div>
+        <div id="match-card" class="dialog-box">
+            <h2>Match the Card</h2>
+            <div class="card-grid" id="card-grid"></div>
+            <p>Wrong Matches: <span id="match-wrong">0</span></p>
+            <button class="action-button" onclick="MatchCard.start()">Start</button>
+            <button class="action-button" onclick="MatchCard.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="match-card-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You matched all cards!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="match-card-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many wrong matches!</p>
+                <button class="action-button" onclick="MatchCard.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="tic-tac-toe" class="dialog-box">
+            <h2>Tic Tac Toe</h2>
+            <div class="tic-tac-toe-grid" id="tic-tac-toe-grid"></div>
+            <p id="tic-tac-toe-status">Player X's Turn</p>
+            <button class="action-button" onclick="TicTacToe.start()">Start</button>
+            <button class="action-button" onclick="TicTacToe.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="tic-tac-toe-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p id="tic-tac-toe-congrats-text"></p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+        </div>
+        <div id="missing-words" class="dialog-box">
+            <h2>Missing Words</h2>
+            <p class="missing-words" id="missing-words-sentence"></p>
+            <p>Attempts: <span id="missing-attempts">0</span></p>
+            <button class="action-button" onclick="MissingWords.check()">Check</button>
+            <button class="action-button" onclick="MissingWords.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="missing-words-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You completed the sentence!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="missing-words-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many wrong attempts!</p>
+                <button class="action-button" onclick="MissingWords.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="puzzle-slider" class="dialog-box">
+            <h2>Puzzle Slider</h2>
+            <div class="puzzle-grid" id="puzzle-grid"></div>
+            <p>Moves: <span id="puzzle-moves">0</span></p>
+            <button class="action-button" onclick="PuzzleSlider.start()">Start</button>
+            <button class="action-button" onclick="PuzzleSlider.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="puzzle-slider-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You solved the puzzle!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="puzzle-slider-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many moves!</p>
+                <button class="action-button" onclick="PuzzleSlider.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="word-search" class="dialog-box">
+            <h2>Word Search</h2>
+            <p>Find: PLANET, ROCKET, STAR, MOON, GALAXY</p>
+            <div class="word-search-grid" id="word-search-grid"></div>
+            <p>Attempts: <span id="word-search-attempts">0</span></p>
+            <button class="action-button" onclick="WordSearch.check()">Check</button>
+            <button class="action-button" onclick="WordSearch.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="word-search-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You found all words!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="word-search-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many wrong attempts!</p>
+                <button class="action-button" onclick="WordSearch.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="snake" class="dialog-box">
+            <h2>Snake</h2>
+            <canvas class="snake-canvas" id="snake-canvas" width="300" height="300"></canvas>
+            <p>Score: <span id="snake-score">0</span></p>
+            <p>Use arrow keys to move</p>
+            <button class="action-button" onclick="Snake.start()">Start</button>
+            <button class="action-button" onclick="Snake.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="snake-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You reached 10 points!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="snake-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>You crashed!</p>
+                <button class="action-button" onclick="Snake.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="trivia-quiz" class="dialog-box">
+            <h2>Trivia Quiz</h2>
+            <p class="trivia-question" id="trivia-question"></p>
+            <div class="trivia-options" id="trivia-options"></div>
+            <p>Score: <span id="trivia-score">0</span></p>
+            <button class="action-button" onclick="TriviaQuiz.start()">Start</button>
+            <button class="action-button" onclick="TriviaQuiz.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="trivia-quiz-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You answered all questions!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="trivia-quiz-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many wrong answers!</p>
+                <button class="action-button" onclick="TriviaQuiz.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="color-match" class="dialog-box">
+            <h2>Color Match</h2>
+            <p>Target Pattern:</p>
+            <div id="color-match-target" class="color-match-grid"></div>
+            <div class="color-match-grid" id="color-match-grid"></div>
+            <p>Attempts: <span id="color-match-attempts">0</span></p>
+            <button class="action-button" onclick="ColorMatch.start()">Start</button>
+            <button class="action-button" onclick="ColorMatch.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="color-match-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You matched the pattern!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="color-match-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many attempts!</p>
+                <button class="action-button" onclick="ColorMatch.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="brick-breaker" class="dialog-box">
+            <h2>Brick Breaker</h2>
+            <canvas class="brick-breaker-canvas" id="brick-breaker-canvas" width="300" height="400"></canvas>
+            <p>Lives: <span id="brick-breaker-lives">3</span></p>
+            <p>Use mouse to move paddle</p>
+            <button class="action-button" onclick="BrickBreaker.start()">Start</button>
+            <button class="action-button" onclick="BrickBreaker.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="brick-breaker-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You cleared all bricks!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="brick-breaker-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>No lives left!</p>
+                <button class="action-button" onclick="BrickBreaker.reset()">Try Again</button>
+            </div>
+        </div>
+        <div id="maze-runner" class="dialog-box">
+            <h2>Maze Runner</h2>
+            <div class="maze-grid" id="maze-grid"></div>
+            <p>Moves: <span id="maze-moves">0</span></p>
+            <p>Use arrow keys to move</p>
+            <button class="action-button" onclick="MazeRunner.start()">Start</button>
+            <button class="action-button" onclick="MazeRunner.reset()">Reset</button>
+            <button class="action-button" onclick="closeGame()">Close</button>
+            <div id="maze-runner-congrats" class="congrats-message">
+                <h3>Congratulations!</h3>
+                <p>You reached the goal!</p>
+                <button class="action-button" onclick="closeGame()">Back to Menu</button>
+            </div>
+            <div id="maze-runner-game-over" class="game-over-message">
+                <h3>Game Over!</h3>
+                <p>Too many moves!</p>
+                <button class="action-button" onclick="MazeRunner.reset()">Try Again</button>
+            </div>
+        </div>
+    </div>
+    <script defer src="script.js"></script>
+</body>
+</html>
