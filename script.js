@@ -198,59 +198,6 @@ const MissingWords = {
     }
 };
 
-const PuzzleSlider = {
-    tiles: [],
-    moves: 0,
-    maxMoves: 50,
-
-    start() {
-        this.reset();
-    },
-
-    reset() {
-        this.tiles = [1, 2, 3, 4, 5, 6, 7, 8, 0];
-        for (let i = 0; i < 50; i++) {
-            const empty = this.tiles.indexOf(0);
-            const moves = [[1,3], [0,2,4], [1,5], [0,4,6], [1,3,5,7], [2,4,8], [3,7], [4,6,8], [5,7]][empty];
-            const move = moves[Math.floor(Math.random() * moves.length)];
-            [this.tiles[empty], this.tiles[move]] = [this.tiles[move], this.tiles[empty]];
-        }
-        this.moves = 0;
-        document.getElementById('puzzle-moves').textContent = this.moves;
-        document.getElementById('puzzle-slider-congrats').classList.remove('active');
-        document.getElementById('puzzle-slider-game-over').classList.remove('active');
-        this.render();
-    },
-
-    render() {
-        const grid = document.getElementById('puzzle-grid');
-        grid.innerHTML = '';
-        this.tiles.forEach((tile, i) => {
-            const div = document.createElement('div');
-            div.className = 'puzzle-tile';
-            div.textContent = tile || '';
-            if (tile) div.onclick = () => this.move(i);
-            grid.appendChild(div);
-        });
-    },
-
-    move(index) {
-        const empty = this.tiles.indexOf(0);
-        const moves = [[1,3], [0,2,4], [1,5], [0,4,6], [1,3,5,7], [2,4,8], [3,7], [4,6,8], [5,7]];
-        if (moves[empty].includes(index)) {
-            [this.tiles[empty], this.tiles[index]] = [this.tiles[index], this.tiles[empty]];
-            this.moves++;
-            document.getElementById('puzzle-moves').textContent = this.moves;
-            if (this.tiles.join() === '1,2,3,4,5,6,7,8,0') {
-                document.getElementById('puzzle-slider-congrats').classList.add('active');
-            } else if (this.moves >= this.maxMoves) {
-                document.getElementById('puzzle-slider-game-over').classList.add('active');
-            }
-            this.render();
-        }
-    }
-};
-
 const WordSearch = {
     words: ['PLANET', 'ROCKET', 'STAR', 'MOON', 'GALAXY'],
     grid: [],
@@ -349,85 +296,128 @@ const Snake = {
     score: 0,
     gameLoop: null,
     isMoving: false,
+    baseSpeed: 100,
+    speed: 100,
+    maxSpeed: 50,
+    audioContext: null,
 
     start() {
-        // Clear any existing game loop
         if (this.gameLoop) {
             clearInterval(this.gameLoop);
             this.gameLoop = null;
         }
-        // Reset state
         this.body = [{ x: 10, y: 10 }];
         this.food = { x: 15, y: 15 };
         this.dx = 0;
         this.dy = 0;
         this.score = 0;
+        this.speed = this.baseSpeed;
         this.isMoving = false;
         document.getElementById('snake-score').textContent = this.score;
+        document.getElementById('snake-progress-bar').style.width = '0%';
         document.getElementById('snake-congrats').classList.remove('active');
         document.getElementById('snake-game-over').classList.remove('active');
-        // Add key listener
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         document.addEventListener('keydown', this.handleMove.bind(this));
-        // Render initial state
         this.render();
-        // Start game loop
-        this.gameLoop = setInterval(this.update.bind(this), 100);
+        this.gameLoop = setInterval(this.update.bind(this), this.speed);
     },
 
     reset() {
-        // Clear game loop
         if (this.gameLoop) {
             clearInterval(this.gameLoop);
             this.gameLoop = null;
         }
-        // Reset state
         this.body = [{ x: 10, y: 10 }];
         this.food = { x: 15, y: 15 };
         this.dx = 0;
         this.dy = 0;
         this.score = 0;
+        this.speed = this.baseSpeed;
         this.isMoving = false;
         document.getElementById('snake-score').textContent = this.score;
+        document.getElementById('snake-progress-bar').style.width = '0%';
         document.getElementById('snake-congrats').classList.remove('active');
         document.getElementById('snake-game-over').classList.remove('active');
-        // Remove key listener
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
         document.removeEventListener('keydown', this.handleMove.bind(this));
-        // Clear and render canvas
         const canvas = document.getElementById('snake-canvas');
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a1a';
+        ctx.fillStyle = '#1e1e1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
         this.render();
+    },
+
+    playSound(frequency, duration) {
+        if (!this.audioContext) return;
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
     },
 
     render() {
         const canvas = document.getElementById('snake-canvas');
         const ctx = canvas.getContext('2d');
-        // Clear canvas
-        ctx.fillStyle = '#1a1a1a';
+        ctx.fillStyle = '#1e1e1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        // Draw grid
-        ctx.strokeStyle = 'rgba(0, 51, 0, 0.5)';
-        for (let x = 0; x < canvas.width; x += 15) {
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        for (let i = 0; i < 50; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+        for (let x = 0; x < canvas.width; x += 25) {
             ctx.beginPath();
             ctx.moveTo(x, 0);
             ctx.lineTo(x, canvas.height);
             ctx.stroke();
         }
-        for (let y = 0; y < canvas.height; y += 15) {
+        for (let y = 0; y < canvas.height; y += 25) {
             ctx.beginPath();
             ctx.moveTo(0, y);
             ctx.lineTo(canvas.width, y);
             ctx.stroke();
         }
-        // Draw snake
-        for (let segment of this.body) {
-            ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
-            ctx.fillRect(segment.x * 15, segment.y * 15, 14, 14);
+
+        this.body.forEach((segment, i) => {
+            ctx.beginPath();
+            const gradient = ctx.createRadialGradient(
+                segment.x * 25 + 12.5, segment.y * 25 + 12.5, 2,
+                segment.x * 25 + 12.5, segment.y * 25 + 12.5, 10
+            );
+            gradient.addColorStop(0, '#00ff00');
+            gradient.addColorStop(1, '#006600');
+            ctx.fillStyle = gradient;
+            ctx.arc(segment.x * 25 + 12.5, segment.y * 25 + 12.5, 10, 0, Math.PI * 2);
+            ctx.fill();
+        });
+
+        ctx.fillStyle = '#ffd700';
+        ctx.beginPath();
+        const fx = this.food.x * 25 + 12.5;
+        const fy = this.food.y * 25 + 12.5;
+        for (let i = 0; i < 10; i++) {
+            const angle = (i * Math.PI) / 5;
+            const radius = i % 2 === 0 ? 8 : 4;
+            ctx.lineTo(
+                fx + radius * Math.cos(angle),
+                fy + radius * Math.sin(angle)
+            );
         }
-        // Draw food
-        ctx.fillStyle = 'rgba(57, 255, 20, 0.7)';
-        ctx.fillRect(this.food.x * 15, this.food.y * 15, 14, 14);
+        ctx.closePath();
+        ctx.fill();
     },
 
     handleMove(event) {
@@ -451,33 +441,35 @@ const Snake = {
 
     update() {
         this.isMoving = false;
-        // Skip update if no movement
-        if (this.dx === 0 && this.dy === 0) {
-            return;
-        }
-        // Move snake
+        if (this.dx === 0 && this.dy === 0) return;
+
         let head = { x: this.body[0].x + this.dx, y: this.body[0].y + this.dy };
-        // Check collisions
         if (head.x < 0 || head.x >= 20 || head.y < 0 || head.y >= 20 ||
             this.body.some(segment => segment.x === head.x && segment.y === head.y)) {
             clearInterval(this.gameLoop);
             this.gameLoop = null;
             document.getElementById('snake-game-over').classList.add('active');
+            this.playSound(200, 0.5);
             document.removeEventListener('keydown', this.handleMove.bind(this));
             return;
         }
+
         this.body.unshift(head);
-        // Check food
         if (head.x === this.food.x && head.y === this.food.y) {
             this.score++;
             document.getElementById('snake-score').textContent = this.score;
+            document.getElementById('snake-progress-bar').style.width = `${(this.score / 20) * 100}%`;
+            this.playSound(800, 0.2);
             do {
                 this.food = {
                     x: Math.floor(Math.random() * 20),
                     y: Math.floor(Math.random() * 20)
                 };
             } while (this.body.some(segment => segment.x === this.food.x && segment.y === this.food.y));
-            if (this.score >= 10) {
+            this.speed = Math.max(this.maxSpeed, this.speed - 5);
+            clearInterval(this.gameLoop);
+            this.gameLoop = setInterval(this.update.bind(this), this.speed);
+            if (this.score >= 20) {
                 clearInterval(this.gameLoop);
                 this.gameLoop = null;
                 document.getElementById('snake-congrats').classList.add('active');
@@ -491,139 +483,24 @@ const Snake = {
     }
 };
 
-const TriviaQuiz = {
-    questions: [
-        { question: 'What is the largest planet?', answer: 'Jupiter', options: ['Mars', 'Jupiter', 'Earth', 'Venus'] },
-        { question: 'What is the closest star to Earth?', answer: 'Sun', options: ['Sun', 'Proxima Centauri', 'Sirius', 'Betelgeuse'] },
-        { question: 'Which planet has rings?', answer: 'Saturn', options: ['Saturn', 'Mercury', 'Neptune', 'Jupiter'] }
-    ],
-    current: 0,
-    score: 0,
-    wrong: 0,
-    maxWrong: 3,
-
-    start() {
-        this.reset();
-    },
-
-    reset() {
-        this.current = 0;
-        this.score = 0;
-        this.wrong = 0;
-        document.getElementById('trivia-score').textContent = this.score;
-        document.getElementById('trivia-quiz-congrats').classList.remove('active');
-        document.getElementById('trivia-quiz-game-over').classList.remove('active');
-        this.render();
-    },
-
-    render() {
-        const question = document.getElementById('trivia-question');
-        const options = document.getElementById('trivia-options');
-        if (this.current < this.questions.length) {
-            question.textContent = this.questions[this.current].question;
-            options.innerHTML = '';
-            this.questions[this.current].options.forEach(opt => {
-                const button = document.createElement('button');
-                button.className = 'action-button';
-                button.textContent = opt;
-                button.onclick = () => this.answer(opt);
-                options.appendChild(button);
-            });
-        } else {
-            question.textContent = '';
-            options.innerHTML = '';
-        }
-    },
-
-    answer(option) {
-        if (option === this.questions[this.current].answer) {
-            this.score++;
-            document.getElementById('trivia-score').textContent = this.score;
-            this.current++;
-            if (this.current >= this.questions.length) {
-                document.getElementById('trivia-quiz-congrats').classList.add('active');
-            } else {
-                this.render();
-            }
-        } else {
-            this.wrong++;
-            if (this.wrong >= this.maxWrong) {
-                document.getElementById('trivia-quiz-game-over').classList.add('active');
-            }
-        }
-    }
-};
-
-const ColorMatch = {
-    target: [],
-    grid: [],
-    attempts: 0,
-    maxAttempts: 10,
-
-    start() {
-        this.reset();
-    },
-
-    reset() {
-        this.target = Array(9).fill().map(() => ['red', 'green', 'blue'][Math.floor(Math.random() * 3)]);
-        this.grid = Array(9).fill('gray');
-        this.attempts = 0;
-        document.getElementById('color-match-attempts').textContent = this.attempts;
-        document.getElementById('color-match-congrats').classList.remove('active');
-        document.getElementById('color-match-game-over').classList.remove('active');
-        this.render();
-    },
-
-    render() {
-        const target = document.getElementById('color-match-target');
-        target.innerHTML = '';
-        this.target.forEach(color => {
-            const div = document.createElement('div');
-            div.className = 'color-match-tile';
-            div.style.backgroundColor = color;
-            target.appendChild(div);
-        });
-        const grid = document.getElementById('color-match-grid');
-        grid.innerHTML = '';
-        this.grid.forEach((color, i) => {
-            const div = document.createElement('div');
-            div.className = 'color-match-tile';
-            div.style.backgroundColor = color;
-            div.onclick = () => this.cycleColor(i);
-            grid.appendChild(div);
-        });
-    },
-
-    cycleColor(index) {
-        const colors = ['gray', 'red', 'green', 'blue'];
-        this.grid[index] = colors[(colors.indexOf(this.grid[index]) + 1) % colors.length];
-        this.attempts++;
-        document.getElementById('color-match-attempts').textContent = this.attempts;
-        if (this.grid.join() === this.target.join()) {
-            document.getElementById('color-match-congrats').classList.add('active');
-        } else if (this.attempts >= this.maxAttempts) {
-            document.getElementById('color-match-game-over').classList.add('active');
-        }
-        this.render();
-    }
-};
-
 const BrickBreaker = {
-    ball: { x: 150, y: 350, dx: 2, dy: -2, radius: 5 },
-    paddle: { x: 130, width: 40, height: 10 },
+    ball: { x: 200, y: 450, dx: 2, dy: -2, radius: 6 },
+    paddle: { x: 180, width: 60, height: 10 },
     bricks: [],
     lives: 3,
     gameLoop: null,
+    audioContext: null,
 
     start() {
         this.reset();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
         this.gameLoop = setInterval(this.update.bind(this), 1000 / 60);
     },
 
     reset() {
-        this.ball = { x: 150, y: 350, dx: 2, dy: -2, radius: 5 };
-        this.paddle = { x: 130, width: 40, height: 10 };
-        this.bricks = Array(3).fill().map((_, i) => Array(5).fill().map((_, j) => ({ x: j * 60 + 10, y: i * 20 + 20, width: 50, height: 10 })));
+        this.ball = { x: 200, y: 450, dx: 2, dy: -2, radius: 6 };
+        this.paddle = { x: 180, width: 60, height: 10 };
+        this.bricks = Array(3).fill().map((_, i) => Array(5).fill().map((_, j) => ({ x: j * 80 + 10, y: i * 20 + 20, width: 70, height: 15 })));
         this.lives = 3;
         document.getElementById('brick-breaker-lives').textContent = this.lives;
         document.getElementById('brick-breaker-congrats').classList.remove('active');
@@ -631,6 +508,10 @@ const BrickBreaker = {
         if (this.gameLoop) {
             clearInterval(this.gameLoop);
             this.gameLoop = null;
+        }
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
         }
         const canvas = document.getElementById('brick-breaker-canvas');
         canvas.onmousemove = e => {
@@ -643,20 +524,44 @@ const BrickBreaker = {
             canvas.onmousemove = null;
         };
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a1a';
+        ctx.fillStyle = '#1e1e1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.render();
+    },
+
+    playSound(frequency, duration) {
+        if (!this.audioContext) return;
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.5, this.audioContext.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
     },
 
     render() {
         const canvas = document.getElementById('brick-breaker-canvas');
         const ctx = canvas.getContext('2d');
-        ctx.fillStyle = '#1a1a1a';
+        ctx.fillStyle = '#1e1e1e';
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.fillStyle = 'rgba(0, 255, 0, 0.7)';
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        for (let i = 0; i < 50; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.fillStyle = '#ffffff';
         ctx.beginPath();
         ctx.arc(this.ball.x, this.ball.y, this.ball.radius, 0, Math.PI * 2);
         ctx.fill();
+        ctx.fillStyle = '#00cc00';
         ctx.fillRect(this.paddle.x, canvas.height - this.paddle.height, this.paddle.width, this.paddle.height);
+        ctx.fillStyle = '#333';
         this.bricks.forEach(row => {
             row.forEach(brick => {
                 if (brick) {
@@ -669,16 +574,24 @@ const BrickBreaker = {
     update() {
         this.ball.x += this.ball.dx;
         this.ball.y += this.ball.dy;
-        if (this.ball.x + this.ball.radius > 300 || this.ball.x - this.ball.radius < 0) this.ball.dx *= -1;
-        if (this.ball.y - this.ball.radius < 0) this.ball.dy *= -1;
-        if (this.ball.y + this.ball.radius > 400 - this.paddle.height &&
+        if (this.ball.x + this.ball.radius > 400 || this.ball.x - this.ball.radius < 0) {
+            this.ball.dx *= -1;
+            this.playSound(600, 0.1);
+        }
+        if (this.ball.y - this.ball.radius < 0) {
+            this.ball.dy *= -1;
+            this.playSound(600, 0.1);
+        }
+        if (this.ball.y + this.ball.radius > 500 - this.paddle.height &&
             this.ball.x > this.paddle.x && this.ball.x < this.paddle.x + this.paddle.width) {
             this.ball.dy *= -1;
+            this.playSound(800, 0.1);
         }
-        if (this.ball.y + this.ball.radius > 400) {
+        if (this.ball.y + this.ball.radius > 500) {
             this.lives--;
             document.getElementById('brick-breaker-lives').textContent = this.lives;
-            this.ball = { x: 150, y: 350, dx: 2, dy: -2, radius: 5 };
+            this.ball = { x: 200, y: 450, dx: 2, dy: -2, radius: 6 };
+            this.playSound(200, 0.5);
             if (this.lives <= 0) {
                 clearInterval(this.gameLoop);
                 this.gameLoop = null;
@@ -692,6 +605,7 @@ const BrickBreaker = {
                     this.ball.y > brick.y && this.ball.y < brick.y + brick.height) {
                     row[j] = null;
                     this.ball.dy *= -1;
+                    this.playSound(1000, 0.1);
                 }
             });
         });
@@ -701,6 +615,193 @@ const BrickBreaker = {
             document.getElementById('brick-breaker-congrats').classList.add('active');
             return;
         }
+        this.render();
+    }
+};
+
+const SpaceInvaders = {
+    player: { x: 250, y: 450, width: 30, height: 20 },
+    aliens: [],
+    bullets: [],
+    score: 0,
+    gameLoop: null,
+    moveLeft: false,
+    moveRight: false,
+    shoot: false,
+    audioContext: null,
+
+    start() {
+        this.reset();
+        this.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        this.gameLoop = setInterval(this.update.bind(this), 1000 / 60);
+        document.addEventListener('keydown', this.handleKeyDown.bind(this));
+        document.addEventListener('keyup', this.handleKeyUp.bind(this));
+    },
+
+    reset() {
+        this.player = { x: 250, y: 450, width: 30, height: 20 };
+        this.aliens = Array(3).fill().map((_, i) => Array(5).fill().map((_, j) => ({
+            x: j * 80 + 50,
+            y: i * 50 + 50,
+            width: 30,
+            height: 20
+        })));
+        this.bullets = [];
+        this.score = 0;
+        this.moveLeft = false;
+        this.moveRight = false;
+        this.shoot = false;
+        document.getElementById('space-invaders-score').textContent = this.score;
+        document.getElementById('space-invaders-congrats').classList.remove('active');
+        document.getElementById('space-invaders-game-over').classList.remove('active');
+        if (this.gameLoop) {
+            clearInterval(this.gameLoop);
+            this.gameLoop = null;
+        }
+        if (this.audioContext) {
+            this.audioContext.close();
+            this.audioContext = null;
+        }
+        document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+        document.removeEventListener('keyup', this.handleKeyUp.bind(this));
+        const canvas = document.getElementById('space-invaders-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        this.render();
+    },
+
+    playSound(frequency, duration) {
+        if (!this.audioContext) return;
+        const oscillator = this.audioContext.createOscillator();
+        const gainNode = this.audioContext.createGain();
+        oscillator.type = 'square';
+        oscillator.frequency.setValueAtTime(frequency, this.audioContext.currentTime);
+        gainNode.gain.setValueAtTime(0.3, this.audioContext.currentTime);
+        oscillator.connect(gainNode);
+        gainNode.connect(this.audioContext.destination);
+        oscillator.start();
+        oscillator.stop(this.audioContext.currentTime + duration);
+    },
+
+    render() {
+        const canvas = document.getElementById('space-invaders-canvas');
+        const ctx = canvas.getContext('2d');
+        ctx.fillStyle = '#1e1e1e';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+        for (let i = 0; i < 50; i++) {
+            ctx.beginPath();
+            ctx.arc(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 2, 0, Math.PI * 2);
+            ctx.fill();
+        }
+
+        ctx.fillStyle = '#00cc00';
+        ctx.beginPath();
+        ctx.moveTo(this.player.x, this.player.y);
+        ctx.lineTo(this.player.x + this.player.width, this.player.y + this.player.height);
+        ctx.lineTo(this.player.x - this.player.width, this.player.y + this.player.height);
+        ctx.closePath();
+        ctx.fill();
+
+        ctx.fillStyle = '#ff4444';
+        this.aliens.forEach(row => {
+            row.forEach(alien => {
+                if (alien) {
+                    ctx.beginPath();
+                    ctx.arc(alien.x, alien.y, alien.width / 2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            });
+        });
+
+        ctx.fillStyle = '#ffffff';
+        this.bullets.forEach(bullet => {
+            ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+        });
+    },
+
+    handleKeyDown(event) {
+        if (event.key === 'ArrowLeft') this.moveLeft = true;
+        if (event.key === 'ArrowRight') this.moveRight = true;
+        if (event.key === ' ') this.shoot = true;
+    },
+
+    handleKeyUp(event) {
+        if (event.key === 'ArrowLeft') this.moveLeft = false;
+        if (event.key === 'ArrowRight') this.moveRight = false;
+        if (event.key === ' ') this.shoot = false;
+    },
+
+    update() {
+        if (this.moveLeft && this.player.x - this.player.width > 0) this.player.x -= 5;
+        if (this.moveRight && this.player.x + this.player.width < 500) this.player.x += 5;
+        if (this.shoot && !this.bullets.some(b => b.y > 400)) {
+            this.bullets.push({ x: this.player.x, y: this.player.y - 10, width: 4, height: 10, dy: -8 });
+            this.playSound(1200, 0.1);
+        }
+
+        this.bullets.forEach(bullet => bullet.y += bullet.dy);
+        this.bullets = this.bullets.filter(bullet => bullet.y > 0);
+
+        let direction = 1;
+        let moveDown = false;
+        this.aliens.forEach(row => {
+            row.forEach(alien => {
+                if (alien && (alien.x + alien.width > 500 || alien.x - alien.width < 0)) {
+                    direction = -direction;
+                    moveDown = true;
+                }
+            });
+        });
+
+        this.aliens.forEach(row => {
+            row.forEach(alien => {
+                if (alien) {
+                    alien.x += direction * 2;
+                    if (moveDown) alien.y += 20;
+                }
+            });
+        });
+
+        this.bullets.forEach((bullet, bIndex) => {
+            this.aliens.forEach((row, rIndex) => {
+                row.forEach((alien, aIndex) => {
+                    if (alien &&
+                        bullet.x > alien.x - alien.width &&
+                        bullet.x < alien.x + alien.width &&
+                        bullet.y > alien.y - alien.height &&
+                        bullet.y < alien.y + alien.height) {
+                        this.aliens[rIndex][aIndex] = null;
+                        this.bullets.splice(bIndex, 1);
+                        this.score += 10;
+                        document.getElementById('space-invaders-score').textContent = this.score;
+                        this.playSound(1000, 0.1);
+                    }
+                });
+            });
+        });
+
+        if (this.aliens.every(row => row.every(alien => !alien))) {
+            clearInterval(this.gameLoop);
+            this.gameLoop = null;
+            document.getElementById('space-invaders-congrats').classList.add('active');
+            document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+            document.removeEventListener('keyup', this.handleKeyUp.bind(this));
+            return;
+        }
+
+        if (this.aliens.some(row => row.some(alien => alien && alien.y + alien.height > 450))) {
+            clearInterval(this.gameLoop);
+            this.gameLoop = null;
+            document.getElementById('space-invaders-game-over').classList.add('active');
+            this.playSound(200, 0.5);
+            document.removeEventListener('keydown', this.handleKeyDown.bind(this));
+            document.removeEventListener('keyup', this.handleKeyUp.bind(this));
+            return;
+        }
+
         this.render();
     }
 };
@@ -816,12 +917,10 @@ function showGame(gameId) {
         'match-card': MatchCard,
         'tic-tac-toe': TicTacToe,
         'missing-words': MissingWords,
-        'puzzle-slider': PuzzleSlider,
         'word-search': WordSearch,
         'snake': Snake,
-        'trivia-quiz': TriviaQuiz,
-        'color-match': ColorMatch,
         'brick-breaker': BrickBreaker,
+        'space-invaders': SpaceInvaders,
         'maze-runner': MazeRunner
     };
     if (games[gameId]) {
@@ -844,12 +943,10 @@ function closeGame() {
         'match-card': MatchCard,
         'tic-tac-toe': TicTacToe,
         'missing-words': MissingWords,
-        'puzzle-slider': PuzzleSlider,
         'word-search': WordSearch,
         'snake': Snake,
-        'trivia-quiz': TriviaQuiz,
-        'color-match': ColorMatch,
         'brick-breaker': BrickBreaker,
+        'space-invaders': SpaceInvaders,
         'maze-runner': MazeRunner
     };
     if (activeGameId && games[activeGameId]) {
@@ -857,9 +954,3 @@ function closeGame() {
     }
     activeGameId = null;
 }
-
-document.querySelectorAll('img').forEach(img => {
-    img.onerror = () => {
-        img.src = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=';
-    };
-});
